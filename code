@@ -1,0 +1,149 @@
+#include <iostream>
+#include <conio.h>
+#include <windows.h>
+
+using namespace std;
+
+bool gameOver;
+const int height = 30; // Adjusted height for better visibility
+const int width = 30;  // Adjusted width for better visibility
+int x, y, fruitx, fruity, score;
+int tailx[100], taily[100], nTail;
+
+enum eDirection { STOP = 0, UP, DOWN, LEFT, RIGHT };
+eDirection dir;
+
+void setup() {
+    gameOver = false;
+    dir = STOP;
+    x = width / 2;
+    y = height / 2;
+    fruitx = rand() % width;
+    fruity = rand() % height;
+    score = 0;
+    nTail = 0;
+}
+
+void draw() {
+    system("CLS");
+    for (int i = 0; i < width + 2; i++) // Top boundary
+        cout << "#";
+    cout << endl;
+
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (j == 0)
+                cout << "#"; // Left boundary
+
+            if (i == y && j == x)
+                cout << "O"; // Snake head
+            else if (i == fruity && j == fruitx)
+                cout << "F"; // Fruit
+            else {
+                bool print = false;
+                for (int k = 0; k < nTail; k++) { // Loop through the tail
+                    if (tailx[k] == j && taily[k] == i) {
+                        cout << "o"; // Tail segment
+                        print = true;
+                    }
+                }
+                if (!print)
+                    cout << " "; // Empty space
+            }
+
+            if (j == width - 1)
+                cout << "#"; // Right boundary
+        }
+        cout << endl;
+    }
+
+    for (int i = 0; i < width + 2; i++) // Bottom boundary
+        cout << "#";
+    cout << endl;
+    cout << "Score: " << score << endl;
+}
+
+void input() {
+    if (_kbhit()) {
+        int key = _getch();
+        if(key == 224){
+        switch (_getch()) {
+        case 72:
+            dir = UP;
+            break;
+        case 75:
+            dir = LEFT;
+            break;
+        case 77:
+            dir = RIGHT;
+            break;
+        case 80:
+            dir = DOWN;
+            break;
+        default:
+            break;
+        }}
+    }
+}
+
+void logic() {
+    int prevx = tailx[0];
+    int prevy = taily[0];
+    int prev2x, prev2y;
+    tailx[0] = x;
+    taily[0] = y;
+    for (int i = 1; i < nTail; i++) {
+        prev2x = tailx[i];
+        prev2y = taily[i];
+        tailx[i] = prevx;
+        taily[i] = prevy;
+        prevx = prev2x;
+        prevy = prev2y;
+    }
+
+    switch (dir) {
+    case UP:
+        y--;
+        break;
+    case DOWN:
+        y++;
+        break;
+    case LEFT:
+        x--;
+        break;
+    case RIGHT:
+        x++;
+        break;
+    default:
+        break;
+    }
+
+    // Check for collisions with the wall
+    if (x < 0 || x >= width || y < 0 || y >= height)
+        gameOver = true;
+
+    // Check for collisions with the tail
+    for (int i = 0; i < nTail; i++) {
+        if (tailx[i] == x && taily[i] == y)
+            gameOver = true;
+    }
+
+    // Check if the snake eats the fruit
+    if (x == fruitx && y == fruity) {
+        score += 10;
+        fruitx = rand() % width;
+        fruity = rand() % height;
+        nTail++;
+    }
+}
+
+int main() {
+    setup();
+    while (!gameOver) {
+        draw();
+        input();
+        logic();
+        Sleep(80); // Adjusted for smoother gameplay
+    }
+    return 0;
+}
